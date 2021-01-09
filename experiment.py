@@ -32,14 +32,18 @@ class Bot:
         self.__non_trump_move = non_trump_move
 
     def get_move(self, state):
-
+        best_non_trump_move = best_non_trump_card(state)
         if random.random() < self.__non_trump_move:
-
             # IMPLEMENT: Make the best non-trump move you can. Use the best_non_trump_card method written below.
-            pass
+            return best_non_trump_move
 
         #IMPLEMENT: Make a random move (but exclude the best non-trump move from above)
-        pass
+        moves = state.moves()
+        moves.remove(best_non_trump_move)
+        if len(moves) > 0:
+            return random.choice(moves)
+        else:
+            return best_non_trump_move
 
 
 def empty(n):
@@ -96,7 +100,7 @@ won_by_2 = empty(STEPS)
 
 
 # We will move through the parameters from 0 to 1 in STEPS steps, and play REPEATS games for each
-# combination. If at combination (i, j) player 1 winds a game, we increment won_by_1[i][j]
+# combination. If at combination (i, j) player 1 wins a game, we increment won_by_1[i][j]
 
 for i in range(STEPS):
     for j in range(STEPS):

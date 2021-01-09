@@ -1,6 +1,6 @@
 """
-RandomBot -- A simple strategy: enumerates all legal moves, and picks one
-uniformly at random.
+BullyBot -- Plays first possible trump if it has any, else if opponent played a card it follows suit
+if possible, else it plays its highest ranking card of any suit.
 """
 
 # Import the API objects
