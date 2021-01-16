@@ -54,11 +54,11 @@ def strategy_knowledge(kb):
     # DEFINITION OF THE STRATEGY
     # for all indexes x PC(x) <-> C(x), converted to CNF
     kb.add_clause(~C4, PC4)
-    kb.add_clause(~C9, PC9)
-    kb.add_clause(~C14, PC14)
-    kb.add_clause(~C19, PC19)
-    
     kb.add_clause(~PC4, C4)
+    kb.add_clause(~C9, PC9)
     kb.add_clause(~PC9, C9)
+    kb.add_clause(~C14, PC14)
     kb.add_clause(~PC14, C14)
+    kb.add_clause(~C19, PC19)
     kb.add_clause(~PC19, C19)
+    

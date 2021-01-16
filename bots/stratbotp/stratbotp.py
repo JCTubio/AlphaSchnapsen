@@ -50,27 +50,27 @@ class Bot:
                 print("Marriage strategy applied")
                 return move  # Plays the first move that makes the kb inconsistent
         
-        # # TEMPORARY
-        # chosen_move = moves[0]
-        # # If the opponent has played a card
-        # if state.get_opponents_played_card() is not None:
-        #     moves_same_suit = []
+        # TEMPORARY taken from bully bot
+        chosen_move = moves[0]
+        # If the opponent has played a card
+        if state.get_opponents_played_card() is not None:
+            moves_same_suit = []
 
-        #     # Get all moves of the same suit as the opponent's played card
-        #     for index, move in enumerate(moves):
-        #         if move[0] is not None and Deck.get_suit(move[0]) == Deck.get_suit(state.get_opponents_played_card()):
-        #             moves_same_suit.append(move)
+            # Get all moves of the same suit as the opponent's played card
+            for index, move in enumerate(moves):
+                if move[0] is not None and Deck.get_suit(move[0]) == Deck.get_suit(state.get_opponents_played_card()):
+                    moves_same_suit.append(move)
 
-        #     if len(moves_same_suit) > 0:
-        #         chosen_move = moves_same_suit[0]
-        #         return chosen_move
+            if len(moves_same_suit) > 0:
+                chosen_move = moves_same_suit[0]
+                return chosen_move
 
-        # # Get move with highest rank available, of any suit
-        # for index, move in enumerate(moves):
-        #     if move[0] is not None and move[0] % 5 <= chosen_move[0] % 5:
-        #         chosen_move = move
-        # return chosen_move
-        # # TEMPORARY
+        # Get move with lowest rank available, of any suit
+        for index, move in enumerate(moves):
+            if move[0] is not None and move[0] % 5 >= chosen_move[0] % 5:
+                chosen_move = move
+        return chosen_move
+        # TEMPORARY
 
         # If no move that is entailed by the kb is found, play random move
         return random.choice(moves)
@@ -85,13 +85,10 @@ class Bot:
 
         # load strategy file
         path = f"bots.stratbotp.load_{strategy}"
-        # try:
-        #     load = importlib.import_module(load_filename)
-        # except:
-        #     print(f"ERROR: Could not load the python file {load_filename}")
-        #     # traceback.print_exc()
-        #     # sys.exit(1)
-        load = importlib.import_module(path)
+        try:
+            load = importlib.import_module(path)
+        except:
+            print(f"ERROR: Could not load the python file {path}")
    
         # Add general information about the game
         load.general_information(kb)
@@ -101,7 +98,7 @@ class Bot:
 
         # This line stores the index of the card in the deck.
         # If this doesn't make sense, refer to _deck.py for the card index mapping
-        index = move[0]
+        index = move[1] if strategy == "trumpex" else move[0]
 
         # This creates the string which is used to make the strategy_variable.
         # Note that as far as kb.py is concerned, two objects created with the same

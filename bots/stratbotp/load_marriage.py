@@ -57,20 +57,18 @@ def general_information(kb):
 def strategy_knowledge(kb):
     # DEFINITION OF THE STRATEGY
     # for all cards C: (C(king) ^ C(queen) <-> PC(King)) converted to CNF
-    # because in this Schnapsen implementation you need to win the trick where you declare
-    # a marriage to get the points, and king beats queen
-    kb.add_clause(~PC2, C2)
-    kb.add_clause(~PC2, C3)
-    kb.add_clause(~C2, ~C3, PC2) # clubs marriage to CNF
+    kb.add_clause(~PC3, C2)
+    kb.add_clause(~PC3, C3)
+    kb.add_clause(~C2, ~C3, PC3) # clubs marriage to CNF
 
-    kb.add_clause(~PC7, C7)
-    kb.add_clause(~PC7, C8)
-    kb.add_clause(~C7, ~C8, PC7) # diamonds marriage to CNF
+    kb.add_clause(~PC8, C7)
+    kb.add_clause(~PC8, C8)
+    kb.add_clause(~C7, ~C8, PC8) # diamonds marriage to CNF
 
-    kb.add_clause(~PC12, C12)
-    kb.add_clause(~PC12, C13)
-    kb.add_clause(~C12, ~C13, PC12) # hearts marriage to CNF
+    kb.add_clause(~PC13, C12)
+    kb.add_clause(~PC13, C13)
+    kb.add_clause(~C12, ~C13, PC13) # hearts marriage to CNF
 
-    kb.add_clause(~PC17, C18)
-    kb.add_clause(~PC17, C18)
-    kb.add_clause(~C17, ~C18, PC17) # spades marriage to CNF
+    kb.add_clause(~PC18, C18)
+    kb.add_clause(~PC18, C18)
+    kb.add_clause(~C17, ~C18, PC18) # spades marriage to CNF
