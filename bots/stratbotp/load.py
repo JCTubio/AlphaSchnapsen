@@ -8,7 +8,7 @@ from .fuzzykb import fuzzyKB, FuzzySymbol
 
 MAX_CARD_POINTS = 11
 
-def general_information(kb, state, index):
+def general_information(kb, state, index):  # Loads fuzzy symbols, gives them fuzzy values and adds them to fuzzy knowledge base
     RV = FuzzySymbol("rv", set_fuzzyRankValue(state, util.get_rank(index)))  # rank value
     TV = FuzzySymbol("tv", 0.01 if state.get_trump_suit() == util.get_suit(index) else 1)  # trump value
     SV = FuzzySymbol("sv", set_fuzzySuitValue(state, util.get_suit(index)))  # suit value
@@ -16,11 +16,8 @@ def general_information(kb, state, index):
     kb.add_clause(RV)
     kb.add_clause(TV)
     kb.add_clause(SV)
-    print(f"RV: {RV.value()}")  # print for debugging
-    print(f"TV: {TV.value()}")
-    print(f"SV: {SV.value()}")
 
-def set_fuzzyRankValue(state, own_rank):
+def set_fuzzyRankValue(state, own_rank):  # Returns float between 0 and 1 with how valuable a given card rank is
     points = 1
     if own_rank == 'J':
         points = 2
@@ -34,7 +31,7 @@ def set_fuzzyRankValue(state, own_rank):
         points = 11
     return 1 - (points / MAX_CARD_POINTS)
 
-def set_fuzzySuitValue(state, own_suit):
+def set_fuzzySuitValue(state, own_suit):  # Returns float between 0 and 1 with how common a given card suit is in hand
     clubs_count = 0
     diamonds_count = 0
     hearts_count = 0

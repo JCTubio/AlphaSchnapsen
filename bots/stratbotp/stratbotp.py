@@ -1,10 +1,7 @@
 #!/usr/bin/env python
 """
-This is a bot that applies propositional logic reasoning to determine its strategy.
-The strategy it uses is determined by what is defined in load.py.
-
-It loads general information about the game, as well as the definition of a strategy,
-from load.py.
+Bot that uses propositional logic and fuzzy logic in phase 1 to determine optimal moves according to a predetermined strategy.
+Applies minimax with alphabeta pruning in phase 2 to play optimally.
 """
 
 import importlib
@@ -22,7 +19,57 @@ class Bot:
     def __init__(self):
         pass
 
-    def card_fuzzyValue(self, state, index):  # returns fuzzy value of given card index
+    def alphabeta_value(self, state, alpha=float('-inf'), beta=float('inf'), depth = 0):
+        """Returns the value and associated move for a given state
+
+        Args:
+            state (State): Current state.
+            alpha (float, optional): The highest score that the maximizing player can guarantee given current knowledge. Defaults to float('-inf').
+            beta (float, optional): The highest score that the maximizing player can guarantee given current knowledge. Defaults to float('inf').
+            depth (int, optional): Our current depth within search tree. Defaults to 0.
+
+        Returns:
+            tuple: Best value and move according to minimax
+        """
+
+        if state.finished():
+            winner, points = state.winner()
+            return (points, None) if winner == 1 else (-points, None)
+
+        if depth == 5:
+            return heuristic(state)
+
+        best_value = float('-inf') if maximizing(state) else float('inf')
+        best_move = None
+
+        moves = state.moves()
+
+        for move in moves:
+
+            next_state = state.next(move)
+            value, _ = self.alphabeta_value(next_state)
+
+            if maximizing(state):
+                if value > best_value:
+                    best_value = value
+                    best_move = move
+                    alpha = best_value
+            else:
+                if value < best_value:
+                    best_value = value
+                    best_move = move
+                    beta = best_value
+
+            if alpha > beta:
+                break
+
+        return best_value, best_move
+    
+    def alphabeta_move(self, state):  # Finds the best move to play next according to the minimax algorithm using alphabeta pruning.
+        _, move = self.alphabeta_value(state)
+        return move
+
+    def card_fuzzyValue(self, state, index):  # Returns the fuzzy value of a card's fuzzyKB between 0 and 1
         kb = fuzzyKB()
 
         loadfile.general_information(kb, state, index)
@@ -33,20 +80,32 @@ class Bot:
         highest_fuzzyValue = 0
         for move in other_moves:
             move_fuzzyValue = self.card_fuzzyValue(state, move[0])
-            print(f"FuzzyValue of move {util.get_card_name(move[0])} = {move_fuzzyValue}")
             if move_fuzzyValue > highest_fuzzyValue:
                 highest_fuzzyValue = move_fuzzyValue
                 current_move = move
-        print(f"Selected highest: {highest_fuzzyValue}")
         return current_move
 
     def standard_move(self, state, trump_moves, other_moves):
+        """Plays non-marriage or non-trump exchange moves according to a specific stratety.
+        Passive bot applies its passive strategy if game is in phase 1 and it is leading a trick.
+        If game is in phase 2, it calculates the optimal move using minimax with alphabeta pruning.
+
+        Args:
+            state (State): Current states
+            trump_moves (list): List of moves involving trump cards in hand
+            other_moves (list): List of all non-marriage or trump moves
+
+        Returns:
+            tuple: Schnapsen move
+        """
+
         if state.get_phase() == 1:
             if state.whose_turn() == state.leader():
+                print("Using fuzzyKB")
                 return self.fuzzy_move(state, other_moves)
             else:
                 opponents_card = state.get_opponents_played_card()
-                if is_trump(state, opponents_card):
+                if is_trump(state, opponents_card):  # if opponent plays a trump card
                     print("Played lowest ranking move")
                     return lowest_rank_move(other_moves)
                 elif opponents_card % 5 <= 1:  # if opponent plays ace or 10
@@ -60,7 +119,8 @@ class Bot:
                     print("Played lowest winning move")
                     return lowest_winning_move(other_moves, opponents_card)
         else:  # phase 2
-            return "nope"
+            print("Using alphabeta")
+            return self.alphabeta_move(state)
 
     def get_move(self, state):
         moves = state.moves()
@@ -78,7 +138,7 @@ class Bot:
                 marriages.append(move)
             elif is_trump(state, move[0]):  # move involving a trump card
                 trump_moves.append(move)
-            else:
+            else:  # all remianing moves
                 other_moves.append(move)
         
         for move in exchanges:
@@ -91,13 +151,9 @@ class Bot:
                 print("Marriage strategy applied")
                 return move  # Plays the first move that makes the kb inconsistent
         
-        std_move = self.standard_move(state, trump_moves, other_moves)
-        return std_move if std_move != "nope" else self.fuzzy_move(state, other_moves + trump_moves)  # temporary while phase 2 not implemented yet
+        return self.standard_move(state, trump_moves, other_moves)
         
-        # return self.fuzzy_move(state, other_moves + trump_moves)  # return the move decided by fuzzy passive strategy
-
-    def kb_consistent(self, state, move, strategy):  # checks non-fuzzy KB if move is part of strategy
-        # each time we check for consistency we initialise a new knowledge-base
+    def kb_consistent(self, state, move, strategy):  # checks KB if move is part of strategy
         kb = KB()
 
         # load strategy file
@@ -148,6 +204,7 @@ def lowest_winning_move(moves, opponents_card):
     Returns:
         tuple: Schnapsen move
     """
+
     higher_same_suit = []  # possible moves that are higher rank and same suit as opponent's card
     for move in moves:
         if util.get_suit(move[0]) == util.get_suit(opponents_card) and move[0] % 5 < opponents_card % 5:
@@ -157,3 +214,9 @@ def lowest_winning_move(moves, opponents_card):
         return lowest_rank_move(higher_same_suit)
     else:
         return lowest_rank_move(moves)
+
+def maximizing(state):  # Whether we are maximizing for player 1 or 2
+    return state.whose_turn() == 1
+
+def heuristic(state):  # Returns value between 1.0 and -1.0 of given state according to heuristic evaluating whether player 1 or 2 is better off.
+    return util.ratio_points(state, 1) * 2.0 - 1.0, None
