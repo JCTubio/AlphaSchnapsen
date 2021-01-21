@@ -29,7 +29,7 @@ def set_fuzzyRankValue(state, own_rank):  # Returns float between 0 and 1 with h
         points = 10
     else:
         points = 11
-    return 1 - (points / MAX_CARD_POINTS)
+    return points / MAX_CARD_POINTS
 
 def set_fuzzySuitValue(state, own_suit):  # Returns float between 0 and 1 with how common a given card suit is in hand
     clubs_count = 0

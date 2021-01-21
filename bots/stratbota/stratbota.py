@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """
 Bot that uses propositional logic and fuzzy logic in phase 1 to determine optimal moves according to a predetermined strategy.
-Plays passively when leading tricks in phase 1.
+Plays aggressively when leading tricks in phase 1.
 Applies minimax with alphabeta pruning in phase 2 to play optimally.
 """
 
@@ -158,7 +158,7 @@ class Bot:
         kb = KB()
 
         # load strategy file
-        path = f"bots.stratbotp.load_{strategy}"
+        path = f"bots.stratbota.load_{strategy}"
         try:
             load = importlib.import_module(path)
         except:
