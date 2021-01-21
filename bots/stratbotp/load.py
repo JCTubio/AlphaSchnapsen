@@ -32,7 +32,7 @@ def set_fuzzyRankValue(state, own_rank):
         points = 10
     else:
         points = 11
-    return points / MAX_CARD_POINTS
+    return 1 - (points / MAX_CARD_POINTS)
 
 def set_fuzzySuitValue(state, own_suit):
     clubs_count = 0
@@ -47,9 +47,9 @@ def set_fuzzySuitValue(state, own_suit):
         else : spades_count += 1
     
     own_count = 0
-    if own_suit == "clubs" : own_count += clubs_count
-    elif own_suit == "diamonds" : own_count += diamonds_count
-    elif own_suit == "hearts" : own_count += hearts_count
+    if own_suit == "C" : own_count += clubs_count
+    elif own_suit == "D" : own_count += diamonds_count
+    elif own_suit == "H" : own_count += hearts_count
     else : own_count += spades_count
     
     return own_count / 5
