@@ -50,6 +50,9 @@ def play(
         else:
             state.set_to_revoked()
 
+    print(f'Player {player1} scored: {state.get_points(1)}')
+    print(f'Player {player2} scored: {state.get_points(2)}')
+
     pr('Game finished. Player {} has won, receiving {} points.'.format(state.winner()[0], state.winner()[1]), verbose)
 
     return state.winner()
