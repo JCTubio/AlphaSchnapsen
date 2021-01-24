@@ -5,19 +5,24 @@ from api import State, Deck, util
 from multiprocessing import Process, Manager
 import random
 
+
 def play(
-            player1,            # type: Bot
-            player2,            # type: Bot
-            state,              # type: State
-            max_time=5000,      # type: int
-            verbose=True,       # type: bool
-            fast=False          # type: bool
-        ):
+    player1,            # type: Bot
+    player2,            # type: Bot
+    state,              # type: State
+    max_time=5000,      # type: int
+    verbose=True,       # type: bool
+    fast=False          # type: bool
+):
     """
     Play a game between two given players, from the given starting state.
     """
     pr('player1: {}'.format(player1), verbose)
     pr('player2: {}'.format(player2), verbose)
+    player1phase1score = 0
+    player2phase1score = 0
+    player1phase2score = 0
+    player2phase2score = 0
 
     # The game loop
     while not state.finished():
@@ -25,34 +30,48 @@ def play(
         player = player1 if state.whose_turn() == 1 else player2
 
         # We introduce a state signature which essentially obscures the deck's perfect knowledge from the player
-        given_state = state.clone(signature=state.whose_turn()) if state.get_phase() == 1 else state.clone()
+        given_state = state.clone(signature=state.whose_turn(
+        )) if state.get_phase() == 1 else state.clone()
 
-        move = player.get_move(given_state) if fast else get_move(given_state, player, max_time, verbose)
+        move = player.get_move(given_state) if fast else get_move(
+            given_state, player, max_time, verbose)
 
-        if is_valid(move, player): # check for common mistakes
-
+        if is_valid(move, player):  # check for common mistakes
 
             if move[0] is None:
                 pr('*   Player {} performs a trump jack exchange'.format(state.whose_turn()), verbose)
-            
+
             else:
-                pr('*   Player {} plays: {}{}'.format(state.whose_turn(), util.get_rank(move[0]), util.get_suit(move[0])), verbose)
-                
+                pr('*   Player {} plays: {}{}'.format(state.whose_turn(),
+                                                      util.get_rank(move[0]), util.get_suit(move[0])), verbose)
+
                 if move[1] is not None:
-                    pr('*   Player {} melds a marriage between {}{} and {}{}'.format(state.whose_turn(), util.get_rank(move[0]), util.get_suit(move[0]), util.get_rank(move[1]), util.get_suit(move[1])), verbose)
+                    pr('*   Player {} melds a marriage between {}{} and {}{}'.format(state.whose_turn(), util.get_rank(
+                        move[0]), util.get_suit(move[0]), util.get_rank(move[1]), util.get_suit(move[1])), verbose)
 
             state = state.next(move)
+
             pr(state, verbose)
 
             if not state.revoked() is None:
-                pr('!   Player {} revoked (made illegal move), game finished.'.format(state.revoked()), verbose)
-        
+                pr('!   Player {} revoked (made illegal move), game finished.'.format(
+                    state.revoked()), verbose)
+
+            if state.get_phase() == 1:
+                player1phase1score = state.get_points(1)
+                player2phase1score = state.get_points(2)
+            else:
+                player1phase2score = state.get_points(1)
+                player2phase2score = state.get_points(2)
+
         else:
             state.set_to_revoked()
 
-    pr('Game finished. Player {} has won, receiving {} points.'.format(state.winner()[0], state.winner()[1]), verbose)
+    pr('Game finished. Player {} has won, receiving {} points.'.format(
+        state.winner()[0], state.winner()[1]), verbose)
 
-    return state.winner(), (state.get_points(1), state.get_points(2)) #modified to output points
+    return state.winner(), (state.get_points(1), state.get_points(2)), (player1phase1score, player1phase2score, player2phase1score, player2phase2score)  # modified to output points
+
 
 def get_move(state, player, max_time, verbose):
     """
@@ -65,14 +84,15 @@ def get_move(state, player, max_time, verbose):
     # We call the player bot in a separate process.This allows us to terminate
     # if the player takes too long.
     manager = Manager()
-    result = manager.dict() # result is a variable shared between our process and
-                            # the player's. This allows it to pass the move to us
+    result = manager.dict()  # result is a variable shared between our process and
+    # the player's. This allows it to pass the move to us
 
     # Start a process with the function 'call_player' and the given arguments
     # We also give it the state of the global PRNG to ensure execution is deterministic whenever no timeouts happen
-    #we make a call to random to ensure that next invocations of get_move will give start with a different state of the rng
+    # we make a call to random to ensure that next invocations of get_move will give start with a different state of the rng
     random.random()
-    process = Process(target=call_player, args=(player, state, random.getstate(),  result))
+    process = Process(target=call_player, args=(
+        player, state, random.getstate(),  result))
 
     # Start the process
     process.start()
@@ -83,7 +103,8 @@ def get_move(state, player, max_time, verbose):
     # Check if the process terminated in time
     move = None
     if process.is_alive():
-        pr('!   Player {} took too long, game revoked.'.format(state.whose_turn()), verbose)
+        pr('!   Player {} took too long, game revoked.'.format(
+            state.whose_turn()), verbose)
 
         process.terminate()
         process.join()
@@ -95,6 +116,7 @@ def get_move(state, player, max_time, verbose):
             move = result['move']
 
     return move
+
 
 def call_player(player, state, randomState, result):
     random.setstate(randomState)
@@ -115,9 +137,11 @@ def pr(string, verbose):
     if(verbose):
         print(string)
 
-#Syntax checking the move
+# Syntax checking the move
+
+
 def is_valid(
-        move, # type: tuple[int, int]
+        move,  # type: tuple[int, int]
         player):
     """
     Check a move for common mistakes, and throw a (hopefully) helpful error message if incorrect.
@@ -130,13 +154,14 @@ def is_valid(
         return False
 
     if not type(move) is tuple:
-        print('Bot {} returned a move {} that was not a pair (i.e. (2,3))'.format(player, move))
+        print('Bot {} returned a move {} that was not a pair (i.e. (2,3))'.format(
+            player, move))
         return False
 
     if len(move) != 2:
         print('Bot {} returned a move {} that was not of length 2.'.format(player, move))
         return False
-    
+
     if ((type(move[0]) is not int) and (move[0] is not None)) or ((type(move[1]) is not int) and (move[1] is not None)):
         print('Bot {} returned a move {} that was not a tuple for which each element is either an int or None'.format(player, move))
         return False
