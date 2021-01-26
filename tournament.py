@@ -25,7 +25,7 @@ def run_tournament(options):
     totalgames = (n*n - n)/2 * options.repeats
     playedgames = 0
 
-    totalScores = [[botnames[0], botnames[1], 'winner', 'points', f'{botnames[0]} phase1 score', f'{botnames[1]} phase1 score', f'{botnames[0]} phase2 score', f'{botnames[1]} phase2 score']] # total scores to output to csv
+    totalScores = [[botnames[0], botnames[1], 'winner', 'points', f'{botnames[0]} phase1 score', f'{botnames[1]} phase1 score', 'seed']] # total scores to output to csv
 
     print('Playing {} games:'.format(int(totalgames)))
     for a, b in matches:
@@ -37,22 +37,22 @@ def run_tournament(options):
                 p = [b, a]
 
             # Generate a state with a random seed
-            state = State.generate(phase=int(options.phase))
+            seed = random.randint(0, 100000)
+            state = State.generate(id=seed, phase=int(options.phase))
 
-            (winner, score), (player1score, player2score), (player1phase1score, player1phase2score, player2phase1score, player2phase2score) = engine.play(bots[p[0]], bots[p[1]], state, options.max_time*1000, verbose=options.verbose, fast=options.fast)
+            (winner, score), (player1score, player2score), (player1phase1score, player2phase1score) = engine.play(bots[p[0]], bots[p[1]], state, options.max_time*1000, verbose=options.verbose, fast=options.fast)
 
             if winner is not None:
                 winner = p[winner - 1]
                 wins[winner] += score
-                scores = [0, 0, 0, 0, 0, 0, 0, 0] # initial values for total scores
+                scores = [0, 0, 0, 0, 0, 0, 0, 0, 0] # initial values for total scores
                 scores[p[0]] = player1score
                 scores[p[1]] = player2score
                 scores[2] = botnames[winner]
                 scores[3] = score
                 scores[p[0] + 4] = player1phase1score
                 scores[p[1] + 4] = player2phase1score
-                scores[p[0] + 6] = player1phase2score
-                scores[p[1] + 6] = player2phase2score
+                scores[6] = seed
                 totalScores.append(scores)
 
             playedgames += 1

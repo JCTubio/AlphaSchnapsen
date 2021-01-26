@@ -21,8 +21,6 @@ def play(
     pr('player2: {}'.format(player2), verbose)
     player1phase1score = 0
     player2phase1score = 0
-    player1phase2score = 0
-    player2phase2score = 0
 
     # The game loop
     while not state.finished():
@@ -60,9 +58,6 @@ def play(
             if state.get_phase() == 1:
                 player1phase1score = state.get_points(1)
                 player2phase1score = state.get_points(2)
-            else:
-                player1phase2score = state.get_points(1)
-                player2phase2score = state.get_points(2)
 
         else:
             state.set_to_revoked()
@@ -70,7 +65,7 @@ def play(
     pr('Game finished. Player {} has won, receiving {} points.'.format(
         state.winner()[0], state.winner()[1]), verbose)
 
-    return state.winner(), (state.get_points(1), state.get_points(2)), (player1phase1score, player1phase2score, player2phase1score, player2phase2score)  # modified to output points
+    return state.winner(), (state.get_points(1), state.get_points(2)), (player1phase1score, player2phase1score)  # modified to output points
 
 
 def get_move(state, player, max_time, verbose):
