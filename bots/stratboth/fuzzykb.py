@@ -1,4 +1,4 @@
-›import sys
+import sys
 
 class Symbol(object):
     """

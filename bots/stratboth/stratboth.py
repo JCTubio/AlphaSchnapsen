@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """
 Bot that uses propositional logic and fuzzy logic in phase 1 to determine optimal moves according to a predetermined strategy.
-Plays aggressively when leading tricks in phase 1.
+Plays passively when leading tricks in phase 1 if it has a hand with low cards. Plays aggressively when it has high cards in hand.
 Applies minimax with alphabeta pruning in phase 2 to play optimally.
 """
 
@@ -18,6 +18,7 @@ from . import load as loadfile
 class Bot:
 
     def __init__(self):
+        self.passive = True
         pass
 
     def alphabeta_value(self, state, alpha=float('-inf'), beta=float('inf'), depth = 0):
@@ -69,12 +70,34 @@ class Bot:
     def alphabeta_move(self, state):  # Finds the best move to play next according to the minimax algorithm using alphabeta pruning.
         _, move = self.alphabeta_value(state)
         return move
+    
+    def get_hand_value(self, state):
+        total_points = 0
+        for card in state.hand():
+            rank = util.get_rank(card)
+            if rank == 'J':
+                total_points += 2
+            elif rank == 'Q':
+                total_points += 3
+            elif rank == 'K':
+                total_points += 4
+            elif rank == '10':
+                total_points += 10
+            else:
+                total_points += 11
+        print(f"Total hand value = {total_points}")
+        return total_points
 
     def card_fuzzyValue(self, state, index):  # Returns the fuzzy value of a card's fuzzyKB between 0 and 1
         kb = fuzzyKB()
 
-        loadfile.general_information(kb, state, index)
+        loadfile.general_information(kb, state, index, self.passive)
+        print(f"Passive: {self.passive}")
         return kb.fuzzyvalue()
+
+    def initialise_strategy(self, state):
+        hand_value = self.get_hand_value(state)
+        self.passive = True if hand_value < 33 else False  # 33 because the max hand value is 54 and min value is 11, 33 is the average
     
     def fuzzy_move(self, state, other_moves):  # returns move with highest fuzzy value
         current_move = other_moves[0]
@@ -124,6 +147,10 @@ class Bot:
             return self.alphabeta_move(state)
 
     def get_move(self, state):
+        prev_trick = state.get_prev_trick()
+        if prev_trick[0] == None and prev_trick[1] == None:
+            self.initialise_strategy(state)
+
         moves = state.moves()
         exchanges = []
         marriages = []
@@ -158,7 +185,7 @@ class Bot:
         kb = KB()
 
         # load strategy file
-        path = f"bots.stratbota.load_{strategy}"
+        path = f"bots.stratboth.load_{strategy}"
         try:
             load = importlib.import_module(path)
         except:
@@ -221,3 +248,4 @@ def maximizing(state):  # Whether we are maximizing for player 1 or 2
 
 def heuristic(state):  # Returns value between 1.0 and -1.0 of given state according to heuristic evaluating whether player 1 or 2 is better off.
     return util.ratio_points(state, 1) * 2.0 - 1.0, None
+    

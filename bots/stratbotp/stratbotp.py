@@ -10,7 +10,7 @@ import random
 
 from api import Deck, State, util
 
-from .kb import KB, Boolean, Integer
+from .kb import KB, Boolean
 from .fuzzykb import fuzzyKB
 
 from . import load as loadfile
@@ -221,3 +221,4 @@ def maximizing(state):  # Whether we are maximizing for player 1 or 2
 
 def heuristic(state):  # Returns value between 1.0 and -1.0 of given state according to heuristic evaluating whether player 1 or 2 is better off.
     return util.ratio_points(state, 1) * 2.0 - 1.0, None
+    

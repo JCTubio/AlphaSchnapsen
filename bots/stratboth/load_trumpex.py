@@ -40,3 +40,4 @@ def strategy_knowledge(kb):
     kb.add_clause(~PC14, C14)
     kb.add_clause(~C19, PC19)
     kb.add_clause(~PC19, C19)
+    
