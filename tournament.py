@@ -8,7 +8,7 @@ python play.py -h
 
 from argparse import ArgumentParser
 from api import State, util, engine
-import random, time
+import random, time, csv
 
 def run_tournament(options):
 
@@ -25,6 +25,8 @@ def run_tournament(options):
     totalgames = (n*n - n)/2 * options.repeats
     playedgames = 0
 
+    totalScores = [[botnames[0], botnames[1], 'winner', 'points', f'{botnames[0]} phase1 score', f'{botnames[1]} phase1 score', 'seed']] # total scores to output to csv
+
     print('Playing {} games:'.format(int(totalgames)))
     for a, b in matches:
         for r in range(options.repeats):
@@ -35,15 +37,27 @@ def run_tournament(options):
                 p = [b, a]
 
             # Generate a state with a random seed
-            state = State.generate(phase=int(options.phase))
+            seed = random.randint(0, 100000)
+            state = State.generate(id=seed, phase=int(options.phase))
 
-            winner, score = engine.play(bots[p[0]], bots[p[1]], state, options.max_time*1000, verbose=options.verbose, fast=options.fast)
+            (winner, score), (player1score, player2score), (player1phase1score, player2phase1score) = engine.play(bots[p[0]], bots[p[1]], state, options.max_time*1000, verbose=options.verbose, fast=options.fast)
 
             if winner is not None:
                 winner = p[winner - 1]
                 wins[winner] += score
+                scores = [0, 0, 0, 0, 0, 0, 0, 0, 0] # initial values for total scores
+                scores[p[0]] = player1score
+                scores[p[1]] = player2score
+                scores[2] = botnames[winner]
+                scores[3] = score
+                scores[p[0] + 4] = player1phase1score
+                scores[p[1] + 4] = player2phase1score
+                scores[6] = seed
+                totalScores.append(scores)
 
             playedgames += 1
+            print(f'Player {bots[p[0]]} scored: {player1score}')
+            print(f'Player {bots[p[1]]} scored: {player2score}')
             print('Played {} out of {:.0f} games ({:.0f}%): {} \r'.format(playedgames, totalgames, playedgames/float(totalgames) * 100, wins))
             print()
             
@@ -51,6 +65,11 @@ def run_tournament(options):
     for i in range(len(bots)):
         print('    bot {}: {} points'.format(bots[i], wins[i]))
 
+    # output values to csv
+    with open('scores.csv', 'w', newline='') as myfile:
+        wr = csv.writer(myfile, quoting=csv.QUOTE_ALL)
+        for totalScore in totalScores:
+            wr.writerow(totalScore)
 
 if __name__ == "__main__":
 
